@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kas Kelas - Mutia Meilani Putri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide-react/0.263.0/umd/lucide-react.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Login Section -->
+    <div id="login-section" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100 text-center">
+            <div class="mb-6 flex justify-center">
+                <div class="bg-blue-100 p-4 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 mb-2">Kas Kelas Digital</h1>
+            <p class="text-slate-500 mb-8">Masukkan ID Siswa untuk melanjutkan</p>
+            
+            <div class="space-y-4">
+                <input type="text" id="user-id" placeholder="Contoh: 01 atau 25" class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-center text-lg tracking-widest">
+                <button onclick="handleLogin()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-200">
+                    Masuk ke Sistem
+                </button>
+            </div>
+            <p class="mt-6 text-xs text-slate-400 italic">Admin ID: 25 | Siswa ID: 01</p>
+        </div>
+    </div>
+
+    <!-- App Shell (Hidden Initially) -->
+    <div id="app-shell" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-600 p-1.5 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.407 2.73 1.077M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.407-2.73-1.077M12 16V15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <span class="font-bold text-slate-800 tracking-tight">KasKita</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right hidden sm:block">
+                        <p id="nav-user-name" class="text-sm font-semibold text-slate-700 leading-none"></p>
+                        <p id="nav-user-role" class="text-[10px] uppercase tracking-wider text-slate-400 mt-1 font-bold"></p>
+                    </div>
+                    <button onclick="logout()" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-6xl mx-auto p-4 sm:p-6">
+            <!-- Dashboard Siswa -->
+            <div id="siswa-view" class="hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Status Tagihan Card -->
+                    <div class="md:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl shadow-blue-100">
+                        <p class="text-blue-100 text-sm">Total Tagihan Saat Ini</p>
+                        <h2 id="siswa-tagihan" class="text-4xl font-bold mt-1">Rp 0</h2>
+                        <div class="mt-6 flex items-center gap-2 bg-white/10 w-fit px-3 py-1 rounded-full text-xs">
+                            <span id="siswa-status-badge" class="font-medium">Memuat Status...</span>
+                        </div>
+                    </div>
+                    <!-- Quick Actions -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center text-center">
+                        <button onclick="showPaymentModal()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-emerald-100 flex items-center justify-center gap-2">
+                            <span>Bayar Kas Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-semibold text-slate-800">Riwayat Pembayaran Anda</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 text-slate-500">
+                                <tr>
+                                    <th class="px-6 py-3 text-left font-medium">Tanggal</th>
+                                    <th class="px-6 py-3 text-left font-medium">Nominal</th>
+                                    <th class="px-6 py-3 text-left font-medium">Metode</th>
+                                    <th class="px-6 py-3 text-left font-medium">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="siswa-history" class="divide-y divide-slate-100">
+                                <!-- Data dummy -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Admin -->
+            <div id="admin-view" class="hidden space-y-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-xl border border-slate-200 relative group cursor-pointer" onclick="editTotalSaldo()">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Saldo Kas</p>
+                        <p id="admin-total-saldo" class="text-xl font-bold text-slate-800">Rp 1.250.000</p>
+                        <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Siswa Belum Lunas</p>
+                        <p id="admin-count-belum-lunas" class="text-xl font-bold text-amber-600">0 Siswa</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Laporan Masuk</p>
+                        <p class="text-xl font-bold text-blue-600">45 Transaksi</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-slate-200">
+                        <button class="w-full h-full bg-blue-50 text-blue-600 text-xs font-bold rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors">
+                            DOWNLOAD LAPORAN
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-col md:flex-row gap-6">
+                    <!-- Manage Students -->
+                    <div class="flex-1 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-800">Daftar Tagihan Siswa</h3>
+                            <button class="text-xs bg-white border px-3 py-1.5 rounded-lg hover:shadow-sm">+ Tambah Tagihan</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="text-slate-500 border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left">Nama</th>
+                                        <th class="px-4 py-3 text-left">Tagihan</th>
+                                        <th class="px-4 py-3 text-left">Status</th>
+                                        <th class="px-4 py-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-student-list">
+                                    <!-- Rendered JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Logs -->
+                    <div class="w-full md:w-80 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="p-4 border-b border-slate-200 font-bold text-slate-800">Log Notifikasi</div>
+                        <div id="notif-log" class="p-4 space-y-4 max-h-[400px] overflow-y-auto">
+                            <!-- Rendered JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Pembayaran -->
+    <div id="payment-modal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl scale-in transform transition-all">
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Input Pembayaran</h3>
+            <p class="text-sm text-slate-500 mb-6">Masukkan nominal yang ingin dibayarkan.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Nominal (Rp)</label>
+                    <input type="number" id="pay-amount" placeholder="0" class="w-full text-2xl font-bold px-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Metode</label>
+                    <select id="pay-method" class="w-full px-4 py-3 bg-slate-50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="Tunai">Tunai</option>
+                        <option value="Transfer Bank">Transfer Bank</option>
+                        <option value="QRIS">QRIS</option>
+                    </select>
+                </div>
+                <div class="pt-4 flex gap-3">
+                    <button onclick="hidePaymentModal()" class="flex-1 py-3 text-slate-400 font-semibold hover:text-slate-600">Batal</button>
+                    <button onclick="processPayment()" id="btn-submit-pay" class="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-100 hover:bg-blue-700">Bayar Sekarang</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast / Notification Pop up -->
+    <div id="toast" class="hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-[70] bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 transition-all animate-bounce">
+        <div class="bg-emerald-500 p-1 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+        </div>
+        <div>
+            <p id="toast-title" class="font-bold text-sm">Berhasil!</p>
+            <p id="toast-message" class="text-xs text-slate-400">Data telah diperbarui.</p>
+        </div>
+    </div>
+
+    <script>
+        // Data Mockup sesuai struktur Google Sheets
+        const users = [
+            { id: "01", nama: "ADITYA RAKA MAULANA", peran: "siswa" },
+            { id: "21", nama: "LUSIANA", peran: "siswa" },
+            { id: "25", nama: "MUTIA MEILANI PUTRI", peran: "admin" }
+        ];
+
+        let bills = [
+            { id: "01", nama: "ADITYA RAKA MAULANA", tagihan: 600, status: "Belum Lunas" },
+            { id: "21", nama: "LUSIANA", tagihan: 0, status: "Lunas" },
+            { id: "25", nama: "MUTIA MEILANI PUTRI", tagihan: 0, status: "Admin" }
+        ];
+
+        const history = [
+            { id: "01", tgl: "2023-10-01", nominal: 5000, metode: "Tunai", ket: "Kas Minggu 1" },
+            { id: "21", tgl: "2023-10-02", nominal: 10000, metode: "QRIS", ket: "Kas Minggu 1 & 2" }
+        ];
+
+        const notificationLogs = [
+            { tgl: "2023-10-10", jenis: "Tagihan Mingguan", status: "Terkirim" },
+            { tgl: "2023-10-09", jenis: "Pembayaran Berhasil", status: "Terkirim" }
+        ];
+
+        let totalSaldoKas = 1250000;
+        let currentUser = null;
+
+        // AUTH LOGIC
+        function handleLogin() {
+            const idInput = document.getElementById('user-id').value.trim();
+            const user = users.find(u => u.id === idInput);
+
+            if (user) {
+                currentUser = user;
+                showApp();
+            } else {
+                alert("ID tidak ditemukan. Silakan gunakan 25 untuk Admin atau 01 untuk Siswa.");
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('app-shell').classList.add('hidden');
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('user-id').value = "";
+        }
+
+        // VIEW LOGIC
+        function showApp() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('app-shell').classList.remove('hidden');
+            
+            document.getElementById('nav-user-name').innerText = currentUser.nama;
+            document.getElementById('nav-user-role').innerText = currentUser.peran;
+
+            if (currentUser.peran === 'admin') {
+                renderAdminView();
+            } else {
+                renderSiswaView();
+            }
+        }
+
+        function renderSiswaView() {
+            document.getElementById('admin-view').classList.add('hidden');
+            document.getElementById('siswa-view').classList.remove('hidden');
+
+            const myBill = bills.find(b => b.id === currentUser.id);
+            const tagihanEl = document.getElementById('siswa-tagihan');
+            const badgeEl = document.getElementById('siswa-status-badge');
+
+            tagihanEl.innerText = `Rp ${myBill.tagihan.toLocaleString()}`;
+            badgeEl.innerText = myBill.tagihan === 0 ? "LUNAS" : "BELUM LUNAS";
+            
+            if (myBill.tagihan === 0) {
+                badgeEl.className = "font-medium bg-emerald-400/20 text-emerald-200 px-3 py-1 rounded-full";
+            } else {
+                badgeEl.className = "font-medium bg-amber-400/20 text-amber-200 px-3 py-1 rounded-full";
+            }
+
+            // Render History
+            const histBody = document.getElementById('siswa-history');
+            histBody.innerHTML = history.filter(h => h.id === currentUser.id).map(h => `
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 font-medium text-slate-600">${h.tgl}</td>
+                    <td class="px-6 py-4 font-bold text-slate-800">Rp ${h.nominal.toLocaleString()}</td>
+                    <td class="px-6 py-4 text-slate-500">${h.metode}</td>
+                    <td class="px-6 py-4">
+                        <span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs font-bold">Sukses</span>
+                    </td>
+                </tr>
+            `).join('') || `<tr><td colspan="4" class="p-8 text-center text-slate-400 italic">Belum ada riwayat pembayaran</td></tr>`;
+        }
+
+        function renderAdminView() {
+            document.getElementById('siswa-view').classList.add('hidden');
+            document.getElementById('admin-view').classList.remove('hidden');
+
+            // Update Stats
+            document.getElementById('admin-total-saldo').innerText = `Rp ${totalSaldoKas.toLocaleString()}`;
+            const belumLunasCount = bills.filter(b => b.status === "Belum Lunas").length;
+            document.getElementById('admin-count-belum-lunas').innerText = `${belumLunasCount} Siswa`;
+
+            // Render Students Table
+            const studentBody = document.getElementById('admin-student-list');
+            studentBody.innerHTML = bills.map(b => {
+                // Cari data user untuk menentukan apakah dia admin atau bukan
+                const userRef = users.find(u => u.id === b.id);
+                const isAdminRow = userRef && userRef.peran === 'admin';
+                
+                return `
+                <tr class="border-b border-slate-50 hover:bg-slate-50">
+                    <td class="px-4 py-3 font-medium">${b.nama}</td>
+                    <td class="px-4 py-3 font-bold text-blue-600">Rp ${b.tagihan.toLocaleString()}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${b.status === 'Lunas' ? 'bg-emerald-100 text-emerald-600' : (isAdminRow ? 'bg-slate-100 text-slate-500' : 'bg-amber-100 text-amber-600')}">
+                            ${b.status}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                        ${!isAdminRow ? `<button onclick="editTagihanSiswa('${b.id}')" class="text-blue-500 hover:underline font-semibold text-xs relative z-10">Edit</button>` : '-'}
+                    </td>
+                </tr>
+                `;
+            }).join('');
+
+            // Render Notif Log
+            const logBody = document.getElementById('notif-log');
+            logBody.innerHTML = notificationLogs.map(n => `
+                <div class="flex gap-3 items-start p-2 hover:bg-slate-50 rounded-lg">
+                    <div class="bg-blue-50 p-2 rounded-lg text-blue-500 mt-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-700">${n.jenis}</p>
+                        <p class="text-[10px] text-slate-400">${n.tgl} • <span class="text-emerald-500">${n.status}</span></p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ADMIN EDIT FUNCTIONS
+        function editTagihanSiswa(id) {
+            // Pastikan hanya admin yang bisa memicu prompt
+            if (!currentUser || currentUser.peran !== 'admin') return;
+            
+            const student = bills.find(b => b.id === id);
+            if (!student) return;
+
+            const newTagihan = prompt(`Ubah nominal tagihan untuk ${student.nama}:`, student.tagihan);
+            
+            if (newTagihan !== null) {
+                const nominal = parseInt(newTagihan);
+                if (isNaN(nominal) || nominal < 0) {
+                    alert("Masukkan nominal angka yang valid!");
+                    return;
+                }
+                
+                student.tagihan = nominal;
+                student.status = nominal === 0 ? "Lunas" : "Belum Lunas";
+                
+                showToast("Tagihan Diperbarui", `Tagihan ${student.nama} berhasil diubah.`);
+                renderAdminView();
+            }
+        }
+
+        function editTotalSaldo() {
+            // Pastikan hanya admin yang bisa memicu prompt
+            if (!currentUser || currentUser.peran !== 'admin') return;
+
+            const newSaldo = prompt(`Ubah Total Saldo Kas:`, totalSaldoKas);
+            
+            if (newSaldo !== null) {
+                const nominal = parseInt(newSaldo);
+                if (isNaN(nominal) || nominal < 0) {
+                    alert("Masukkan nominal saldo yang valid!");
+                    return;
+                }
+                
+                totalSaldoKas = nominal;
+                showToast("Saldo Diperbarui", "Total saldo kas kelas berhasil diperbarui.");
+                renderAdminView();
+            }
+        }
+
+        // PAYMENT MODAL LOGIC
+        function showPaymentModal() {
+            document.getElementById('payment-modal').classList.remove('hidden');
+        }
+
+        function hidePaymentModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        function processPayment() {
+            const amountInput = document.getElementById('pay-amount');
+            const amount = parseInt(amountInput.value);
+            const method = document.getElementById('pay-method').value;
+
+            if (!amount || amount <= 0) {
+                alert("Nominal tidak boleh nol atau kurang dari nol!");
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-pay');
+            btn.innerText = "Memproses...";
+            btn.disabled = true;
+
+            // Simulasi Proses Backend (GAS)
+            setTimeout(() => {
+                // Update local state (dummy)
+                const myBill = bills.find(b => b.id === currentUser.id);
+                if (myBill) {
+                    myBill.tagihan = Math.max(0, myBill.tagihan - amount);
+                    if(myBill.tagihan === 0 && myBill.id !== "25") myBill.status = "Lunas";
+                }
+
+                // Update Total Saldo juga saat ada pembayaran
+                totalSaldoKas += amount;
+
+                history.unshift({
+                    id: currentUser.id,
+                    tgl: new Date().toISOString().split('T')[0],
+                    nominal: amount,
+                    metode: method,
+                    ket: "Pembayaran Mandiri"
+                });
+
+                notificationLogs.unshift({
+                    tgl: new Date().toISOString().split('T')[0],
+                    jenis: "Pembayaran Berhasil",
+                    status: "Terkirim"
+                });
+
+                hidePaymentModal();
+                showToast("Pembayaran Berhasil!", "Terima kasih sudah tepat waktu membayar kas.");
+                renderSiswaView();
+                
+                // Reset button
+                btn.innerText = "Bayar Sekarang";
+                btn.disabled = false;
+                amountInput.value = "";
+            }, 1500);
+        }
+
+        function showToast(title, message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').innerText = title || "Berhasil!";
+            document.getElementById('toast-message').innerText = message || "Data telah diperbarui.";
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
